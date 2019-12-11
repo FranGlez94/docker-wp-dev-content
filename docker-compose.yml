@@ -1,0 +1,46 @@
+version: "3"
+
+services:
+  # Database
+  wp-dev-db:
+    container_name: wp-dev-db
+    image: mariadb
+    volumes:
+        - wp_dev_data:/var/lib/mysql
+    restart: always
+    ports:
+        - "${DEV_DB_PORT}:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    networks:
+        - wp_dev_net
+
+  # Wordpress
+  wp-dev-web:
+    container_name: wp-dev-web
+    depends_on:
+        - wp-dev-db
+    image: wordpress:php7.4-apache
+    ports:
+        - "8888:80"
+    restart: always
+    working_dir: /var/www/html
+    volumes:
+        - ./wp-content:/var/www/html/wp-content
+        - ./uploads.ini:/usr/local/etc/php/conf.d/uploads.ini
+    environment:
+      WORDPRESS_DB_HOST: wp-dev-db:3306
+      WORDPRESS_DB_USER: ${MYSQL_USER}
+      WORDPRESS_DB_PASSWORD: ${MYSQL_PASSWORD}
+      WORDPRESS_DEBUG: ${WORDPRESS_DEBUG}
+    networks:
+        - wp_dev_net
+
+networks:
+  wp_dev_net:
+
+volumes:
+  wp_dev_data: 
